@@ -1,0 +1,37 @@
+User Authentication PHP Class
+=============================
+
+This is a simple user authentication class for PHP, which uses
+a MySQL Database which is accessed via MySQLi.
+
+The system also includes a Custom user session system, meaning
+sessions can last a predefined time, for example, 1 minute to over 10 years
+if that was ever needed.
+
+The Current functions are as follows :
+
+- login($username, $password) : Verifies user credentials
+- register($username, $password, $verifypassword, $email) : Adds a new user account to the database
+- newsession($username) : Creates a new session for the user
+- deletesession($hash) : Deletes an existing session from the database, and removes the user's cookie
+- sessioninfo($hash) : Retrieves info about the session from database (UID, Username, Expire Date, IP)
+- checksession($hash) : Checks if session is valid
+- randomkey($length) : Returns a random key, used as activation key, contain lowercase / uppercase letters and numbers
+- activate($username, $key) : Activates an account based on username and activation key
+- changepass($username, $currpass, $newpass, $verifynewpass) : Changes the user's password. Requires current password
+- changeemail($username, $email) : Changes the user's email
+- resetpass($username, $email, $key, $newpass, $verifynewpass) : Sends reset request email and resets user's password
+- checkresetkey($username, $key) : Checks the reset key based on username, returns true / false
+- deleteaccount($username, $password) : Deletes the user's account. Requires current password
+- addattempt($ip) : Logs a new attempt of authentication based on user IP
+- getattempt($ip) : Retrieves amount of attempts from database based on user IP
+- expireattempt() : Removes expired attempt logs from database, should be ran as cron job
+- LogActivity($username, $action, $additionalinfo) : Logs the user's usage of the class, from login to logout. Includes attempts.
+- hashpassword($password) : Hashes the password with the following : hash("SHA512", base64_encode(str_rot13(hash("SHA512", str_rot13($auth_conf['salt_1'] . $password . $auth_conf['salt_2'])))))
+
+The extended encryption will result in a pratically uncrackable password. The session
+system relies on the user's IP, if it changes, the user will have to reauthenticate.
+
+Database layout is stored in auth.sql which you can import easily with PhpMyAdmin
+
+Auth configuration is done in config.php where you can configure the MySQL database settings, attempts settings, email settings etc...
