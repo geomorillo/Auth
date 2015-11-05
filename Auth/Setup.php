@@ -21,5 +21,8 @@ class Setup {
         define('MAX_USERNAME_LENGTH',30);
         define('MIN_PASSWORD_LENGTH',5);
         define('MAX_PASSWORD_LENGTH',30);
+        $waittime = preg_replace("/[^0-9]/", "", SECURITY_DURATION);
+        define('WAIT_TIME',$waittime);// this is the same as SECURITY_DURATION but in number format
+        
     }
 }

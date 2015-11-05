@@ -80,7 +80,7 @@ $lang['en']['changeemail_email_match'] = "New email address matches the existing
 $lang['en']['changeemail_success'] = "Email address successfully changed !";
 
 $lang['en']['resetpass_lockedout'] = "You have been temporarily locked out !";
-$lang['en']['resetpass_wait30'] = "Please wait 30 mins.";
+$lang['en']['resetpass_wait'] = "Please wait %d mins.";
 $lang['en']['resetpass_email_empty'] = "Email field is empty !";
 $lang['en']['resetpass_email_short'] = "Email is too short !";
 $lang['en']['resetpass_email_long'] = "Email is too long !";
