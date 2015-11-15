@@ -47,8 +47,8 @@ class Cookie {
         return $_COOKIE;
     }
 
-    public static function destroy($key, $path = "/", $domain = "") {
-        setcookie($key, '', time() - 3600, $path, $domain);
+    public static function destroy($key, $value = '', $path = "/", $domain = "") {
+        setcookie($key, $value, time() - 3600, $path, $domain);
     }
 
 }

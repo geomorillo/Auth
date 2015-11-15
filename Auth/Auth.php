@@ -20,7 +20,7 @@ class Auth {
     }
 
     /**
-     * Log user in via MySQL Database
+     * Log user in via MySQL Database (ok)
      * @param string $username
      * @param string $password
      * @return boolean
@@ -48,10 +48,10 @@ class Auth {
                     $this->errormsg[] = $this->lang['login_password_empty'];
                     return false;
                 } elseif (strlen($password) > MAX_PASSWORD_LENGTH) {
-                    $this->errormsg[] = $this->lang['login_password_short'];
+                    $this->errormsg[] = $this->lang['login_password_long'];
                     return false;
                 } elseif (strlen($password) < MIN_PASSWORD_LENGTH) {
-                    $this->errormsg[] = $this->lang['login_password_long'];
+                    $this->errormsg[] = $this->lang['login_password_short'];
                     return false;
                 } else {
                     // Input is valid
@@ -93,7 +93,7 @@ class Auth {
     }
 
     /**
-     * Logs out an user, deletes all sessions and destroys the cookies
+     * Logs out an user, deletes all sessions and destroys the cookies (ok)
      */
     public function logout() {
         $auth_session = Cookie::get("auth_session");
@@ -103,7 +103,7 @@ class Auth {
     }
 
     /**
-     * Checks if current user is logged or  not 
+     * Checks if current user is logged or  not (ok)
      * @return boolean
      */
     public function isLogged() {
@@ -117,7 +117,7 @@ class Auth {
     }
 
     /**
-     * Provides an associateve array with current user's info
+     * Provides an associateve array with current user's info (ok)
      * @return array 
      */
     public function currentSessionInfo() {
@@ -128,7 +128,7 @@ class Auth {
     }
 
     /**
-     * Provides an associative array of user info based on session hash
+     * Provides an associative array of user info based on session hash (ok)
      * @param string $hash
      * @return array $session
      */
@@ -138,7 +138,8 @@ class Auth {
         if ($count == 0) {
             // Hash doesn't exist
             $this->errormsg[] = $this->lang['sessioninfo_invalid'];
-            setcookie("auth_session", $hash, time() - 3600, '/');
+            //setcookie("auth_session", $hash, time() - 3600, '/');
+            Cookie::destroy('auth_session', $hash);//check if destroys deletes only a specific hash
             //   \Helpers\Cookie::set("auth_session", $hash, time() - 3600, "/",$_SERVER["HTTP_HOST"]);
             return false;
         } else {
@@ -152,7 +153,7 @@ class Auth {
     }
 
     /**
-     * Checks if a hash session is valid on database
+     * Checks if a hash session is valid on database (ok)
      * @param string $hash
      * @return boolean
      */
@@ -163,7 +164,9 @@ class Auth {
         $count = count($session);
         if ($count == 0) {
             //hash did not exists deleting cookie
-            setcookie("auth_session", $hash, time() - 3600, "/");
+            Cookie::destroy("auth_session",$hash);
+            //Cookie::destroy("auth_session", $hash, '');
+            //setcookie("auth_session", $hash, time() - 3600, "/");
             $this->logActivity('UNKNOWN', "AUTH_CHECKSESSION", "User session cookie deleted - Hash ({$hash}) didn't exist");
             return false;
         } else {
@@ -173,7 +176,8 @@ class Auth {
             if ($_SERVER['REMOTE_ADDR'] != $db_ip) {
                 //hash exists but ip is changed, delete session and hash
                 $this->db->delete('sessions', array('username' => $username));
-                setcookie("auth_session", $hash, time() - 3600, "/");
+                Cookie::destroy("auth_session",$hash);
+                //setcookie("auth_session", $hash, time() - 3600, "/");
                 $this->logActivity($username, "AUTH_CHECKSESSION", "User session cookie deleted - IP Different ( DB : {$db_ip} / Current : " . $_SERVER['REMOTE_ADDR'] . " )");
                 return false;
             } else {
@@ -182,7 +186,8 @@ class Auth {
                 if ($currentdate > $expiredate) {
                     //session has expired delete session and cookies
                     $this->db->delete('sessions', array('username' => $username));
-                    setcookie("auth_session", $hash, time() - 3600, "/");
+                    Cookie::destroy("auth_session",$hash);
+                    //setcookie("auth_session", $hash, time() - 3600, "/");
                     $this->logActivity($username, "AUTH_CHECKSESSION", "User session cookie deleted - Session expired ( Expire date : {$db_expiredate} )");
                 } else {
                     //all ok
@@ -193,25 +198,27 @@ class Auth {
     }
 
     /**
-     * Provides amount of attempts already in database based on user's IP
+     * Provides amount of attempts already in database based on user's IP (ok)
      * @param string $ip
      * @return int $attempt_count
      */
-    function getAttempt($ip) {
+    private function getAttempt($ip) {
         $attempt_count = $this->db->select("SELECT count FROM attempts WHERE ip=:ip", array(':ip' => $ip));
         $count = count($attempt_count);
+
         if ($count == 0) {
-            $attempt_count[]->count = 0;
+            $attempt_count[0] = new \stdClass();
+            $attempt_count[0]->count = 0;
         }
         return $attempt_count;
     }
 
     /*
-     * Adds a new attempt to database based on user's IP
+     * Adds a new attempt to database based on user's IP (ok)
      * @param string $ip
      */
 
-    function addAttempt($ip) {
+    private function addAttempt($ip) {
         $query_attempt = $this->db->select("SELECT count FROM attempts WHERE ip=:ip", array(':ip' => $ip));
         $count = count($query_attempt);
         $attempt_expiredate = date("Y-m-d H:i:s", strtotime(SECURITY_DURATION));
@@ -227,10 +234,10 @@ class Auth {
     }
 
     /**
-     * Used to remove expired attempt logs from database
-     * (Currently used in construct but need more testing)
+     * Used to remove expired attempt logs from database (ok)
+     * (Currently used on __construct but need more testing)
      */
-    function expireAttempt() {
+    private function expireAttempt() {
         $query_attempts = $this->db->select("SELECT ip, expiredate FROM attempts");
         $count = count($query_attempts);
         $curr_time = strtotime(date("Y-m-d H:i:s"));
@@ -246,7 +253,7 @@ class Auth {
     }
 
     /**
-     * Creates a new session for the provided username and sets cookie
+     * Creates a new session for the provided username and sets cookie (ok)
      * @param string $username
      */
     private function newSession($username) {
@@ -260,11 +267,12 @@ class Auth {
         $expiredate = date("Y-m-d H:i:s", strtotime(SESSION_DURATION));
         $expiretime = strtotime($expiredate);
         $this->db->insert('sessions', array('uid' => $uid, 'username' => $username, 'hash' => $hash, 'expiredate' => $expiredate, 'ip' => $ip));
-        setcookie("auth_session", $hash, $expiretime, "/");
+        Cookie::set('auth_session', $hash, $expiretime, "/", FALSE);
+     
     }
 
     /**
-     * Deletes a session based on a hash
+     * Deletes a session based on a hash (ok)
      * @param string $hash
      */
     private function deleteSession($hash) {
@@ -275,13 +283,14 @@ class Auth {
             // Hash doesn't exist
             $this->logActivity("UNKNOWN", "AUTH_LOGOUT", "User session cookie deleted - Database session not deleted - Hash ({$hash}) didn't exist");
             $this->errormsg[] = $this->lang['deletesession_invalid'];
-            setcookie("auth_session", $hash, time() - 3600, "/");
+          
         } else {
             $username = $query_username[0]->username;
             // Hash exists, Delete all sessions for that username :
             $this->db->delete('sessions', array('username' => $username));
             $this->logActivity($username, "AUTH_LOGOUT", "User session cookie deleted - Database session deleted - Hash ({$hash})");
-            setcookie("auth_session", $hash, time() - 3600, "/");
+            //setcookie("auth_session", $hash, time() - 3600, "/");
+            Cookie::destroy("auth_session",$hash);
         }
     }
 
@@ -298,16 +307,16 @@ class Auth {
             // Input Verification :
             if (strlen($username) == 0) {
                 $this->errormsg[] = $this->lang['register_username_empty'];
-            } elseif (strlen($username) > 30) {
+            } elseif (strlen($username) > MAX_USERNAME_LENGTH) {
                 $this->errormsg[] = $this->lang['register_username_long'];
-            } elseif (strlen($username) < 3) {
+            } elseif (strlen($username) < MIN_USERNAME_LENGTH) {
                 $this->errormsg[] = $this->lang['register_username_short'];
             }
             if (strlen($password) == 0) {
                 $this->errormsg[] = $this->lang['register_password_empty'];
-            } elseif (strlen($password) > 30) {
+            } elseif (strlen($password) > MAX_PASSWORD_LENGTH) {
                 $this->errormsg[] = $this->lang['register_password_long'];
-            } elseif (strlen($password) < 5) {
+            } elseif (strlen($password) < MIN_PASSWORD_LENGTH) {
                 $this->errormsg[] = $this->lang['register_password_short'];
             } elseif ($password !== $verifypassword) {
                 $this->errormsg[] = $this->lang['register_password_nomatch'];
@@ -316,9 +325,9 @@ class Auth {
             }
             if (strlen($email) == 0) {
                 $this->errormsg[] = $this->lang['register_email_empty'];
-            } elseif (strlen($email) > 100) {
+            } elseif (strlen($email) > MAX_EMAIL_LENGTH) {
                 $this->errormsg[] = $this->lang['register_email_long'];
-            } elseif (strlen($email) < 5) {
+            } elseif (strlen($email) < MIN_EMAIL_LENGTH) {
                 $this->errormsg[] = $this->lang['register_email_short'];
             } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $this->errormsg[] = $this->lang['register_email_invalid'];
@@ -364,7 +373,7 @@ class Auth {
         }
     }
 
-    /*
+    /**
      * Register a new user into the database
      * @param string $username
      * @param string $password
@@ -372,22 +381,21 @@ class Auth {
      * @param string $email
      * @return boolean
      */
-
-    function register($username, $password, $verifypassword, $email) {
+    public function register($username, $password, $verifypassword, $email) {
         if (!Cookie::get('auth_session')) {
             // Input Verification :
             if (strlen($username) == 0) {
                 $this->errormsg[] = $this->lang['register_username_empty'];
-            } elseif (strlen($username) > 30) {
+            } elseif (strlen($username) > MAX_USERNAME_LENGTH) {
                 $this->errormsg[] = $this->lang['register_username_long'];
-            } elseif (strlen($username) < 3) {
+            } elseif (strlen($username) < MIN_USERNAME_LENGTH) {
                 $this->errormsg[] = $this->lang['register_username_short'];
             }
             if (strlen($password) == 0) {
                 $this->errormsg[] = $this->lang['register_password_empty'];
-            } elseif (strlen($password) > 30) {
+            } elseif (strlen($password) > MAX_PASSWORD_LENGTH) {
                 $this->errormsg[] = $this->lang['register_password_long'];
-            } elseif (strlen($password) < 5) {
+            } elseif (strlen($password) < MIN_PASSWORD_LENGTH) {
                 $this->errormsg[] = $this->lang['register_password_short'];
             } elseif ($password !== $verifypassword) {
                 $this->errormsg[] = $this->lang['register_password_nomatch'];
@@ -396,9 +404,9 @@ class Auth {
             }
             if (strlen($email) == 0) {
                 $this->errormsg[] = $this->lang['register_email_empty'];
-            } elseif (strlen($email) > 100) {
+            } elseif (strlen($email) > MAX_EMAIL_LENGTH) {
                 $this->errormsg[] = $this->lang['register_email_long'];
-            } elseif (strlen($email) < 5) {
+            } elseif (strlen($email) < MIN_EMAIL_LENGTH) {
                 $this->errormsg[] = $this->lang['register_email_short'];
             } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $this->errormsg[] = $this->lang['register_email_invalid'];
@@ -413,7 +421,7 @@ class Auth {
                     $this->errormsg[] = $this->lang['register_username_exist'];
                     return false;
                 } else {
-                    // Username is not taken
+                    // Username is not taken 
                     $query = $this->db->select('SELECT * FROM users WHERE email=:email', array(':email' => $email));
                     $count = count($query);
                     if ($count != 0) {
@@ -426,23 +434,24 @@ class Auth {
                         $password = $this->hashPass($password);
                         $activekey = $this->randomKey(15);
                         $this->db->insert('users', array('username' => $username, 'password' => $password, 'email' => $email, 'activekey' => $activekey));
-                        //EMAIL MESSAGE    
-                        $message_from = EMAIL_FROM;
-                        $message_subj = SITE_NAME;  //$auth_conf['site_name'] . " - Account activation required !";
-                        $message_cont = "Hello {$username}<br/><br/>";
-                        $message_cont .= "You recently registered a new account on " . SITE_NAME . "<br/>";
-                        $message_cont .= "To activate your account please click the following link<br/><br/>";
-                        $message_cont .= "<b><a href=\"" . BASE_URL . "?page=activate&username={$username}&key={$activekey}\">Activate my account</a></b>";
-                        $message_head = "From: {$message_from}" . "\r\n";
-                        $message_head .= "MIME-Version: 1.0" . "\r\n";
-                        $message_head .= "Content-type: text/html; charset=iso-8859-1" . "\r\n";
-                        mail($email, $message_subj, $message_cont, $message_head);
+                        //EMAIL MESSAGE USING PHPMAILER
+                        $mail = new \Helpers\PhpMailer\Mail();
+                        $mail->setFrom(EMAIL_FROM);
+                        $mail->addAddress($email);
+                        $mail->subject(SITE_NAME);
+                        $body = "Hello {$username}<br/><br/>";
+                        $body .= "You recently registered a new account on " . SITE_NAME . "<br/>";
+                        $body .= "To activate your account please click the following link<br/><br/>";
+                        $body .= "<b><a href=\"" . BASE_URL . ACTIVATION_FUNCTION . "?username={$username}&key={$activekey}\">Activate my account</a></b>";
+                        $mail->body($body);
+                        $mail->send();
                         $this->logActivity($username, "AUTH_REGISTER_SUCCESS", "Account created and activation email sent");
                         $this->successmsg[] = $this->lang['register_success'];
                         return true;
                     }
                 }
             } else {
+                //some error 
                 return false;
             }
         } else {
@@ -458,13 +467,15 @@ class Auth {
      * @param string $key
      */
     public function activateAccount($username, $key) {
+        // check lengst of keys and username strings since this can be directly called
+        //  if current account is active dont activate 
         $this->db->update('users', array('isactive' => 1, 'activekey' => $key), array('username' => $username));
         $this->logActivity($username, "AUTH_ACTIVATE_SUCCESS", "Activation successful. Key Entry deleted.");
         $this->successmsg[] = $this->lang['activate_success'];
     }
 
     /**
-     * Logs users actions on the site to database for future viewing
+     * Logs users actions on the site to database for future viewing (ok)
      * @param string $username
      * @param string $action
      * @param string $additionalinfo
@@ -505,7 +516,7 @@ class Auth {
     }
 
     /**
-     * Hash user's password with BCRYPT algorithm and non static salt !
+     * Hash user's password with BCRYPT algorithm and non static salt ! (ok)
      * @param string $password
      * @return string $hashed_password
      */
@@ -520,7 +531,7 @@ class Auth {
     }
 
     /**
-     * Returns a random string, length can be modified
+     * Returns a random string, length can be modified (ok)
      * @param int $length
      * @return string $key
      */
@@ -544,23 +555,23 @@ class Auth {
     function changePass($username, $currpass, $newpass, $verifynewpass) {
         if (strlen($username) == 0) {
             $this->errormsg[] = $this->lang['changepass_username_empty'];
-        } elseif (strlen($username) > 30) {
+        } elseif (strlen($username) > MAX_USERNAME_LENGTH) {
             $this->errormsg[] = $this->lang['changepass_username_long'];
-        } elseif (strlen($username) < 3) {
+        } elseif (strlen($username) < MIN_USERNAME_LENGTH) {
             $this->errormsg[] = $this->lang['changepass_username_short'];
         }
         if (strlen($currpass) == 0) {
             $this->errormsg[] = $this->lang['changepass_currpass_empty'];
-        } elseif (strlen($currpass) < 5) {
+        } elseif (strlen($currpass) < MIN_PASSWORD_LENGTH) {
             $this->errormsg[] = $this->lang['changepass_currpass_short'];
-        } elseif (strlen($currpass) > 30) {
+        } elseif (strlen($currpass) > MAX_PASSWORD_LENGTH) {
             $this->errormsg[] = $this->lang['changepass_currpass_long'];
         }
         if (strlen($newpass) == 0) {
             $this->errormsg[] = $this->lang['changepass_newpass_empty'];
-        } elseif (strlen($newpass) < 5) {
+        } elseif (strlen($newpass) < MIN_PASSWORD_LENGTH) {
             $this->errormsg[] = $this->lang['changepass_newpass_short'];
-        } elseif (strlen($newpass) > 30) {
+        } elseif (strlen($newpass) > MAX_PASSWORD_LENGTH) {
             $this->errormsg[] = $this->lang['changepass_newpass_long'];
         } elseif (strstr($newpass, $username)) {
             $this->errormsg[] = $this->lang['changepass_password_username'];
@@ -603,16 +614,16 @@ class Auth {
     function changeEmail($username, $email) {
         if (strlen($username) == 0) {
             $this->errormsg[] = $this->lang['changeemail_username_empty'];
-        } elseif (strlen($username) > 30) {
+        } elseif (strlen($username) > MAX_USERNAME_LENGTH) {
             $this->errormsg[] = $this->lang['changeemail_username_long'];
-        } elseif (strlen($username) < 3) {
+        } elseif (strlen($username) < MIN_USERNAME_LENGTH) {
             $this->errormsg[] = $this->lang['changeemail_username_short'];
         }
         if (strlen($email) == 0) {
             $this->errormsg[] = $this->lang['changeemail_email_empty'];
-        } elseif (strlen($email) > 100) {
+        } elseif (strlen($email) > MAX_EMAIL_LENGTH) {
             $this->errormsg[] = $this->lang['changeemail_email_long'];
-        } elseif (strlen($email) < 5) {
+        } elseif (strlen($email) < MIN_USERNAME_LENGTH) {
             $this->errormsg[] = $this->lang['changeemail_email_short'];
         } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $this->errormsg[] = $this->lang['changeemail_email_invalid'];
@@ -662,9 +673,9 @@ class Auth {
             if ($username == '0' && $key == '0') {
                 if (strlen($email) == 0) {
                     $this->errormsg[] = $this->lang['resetpass_email_empty'];
-                } elseif (strlen($email) > 100) {
+                } elseif (strlen($email) > MAX_EMAIL_LENGTH) {
                     $this->errormsg[] = $this->lang['resetpass_email_long'];
-                } elseif (strlen($email) < 5) {
+                } elseif (strlen($email) < MIN_EMAIL_LENGTH) {
                     $this->errormsg[] = $this->lang['resetpass_email_short'];
                 } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                     $this->errormsg[] = $this->lang['resetpass_email_invalid'];
@@ -682,16 +693,18 @@ class Auth {
                     return false;
                 } else {
                     $this->db->update('users', array('resetkey' => $resetkey), array('username' => $username));
-                    $message_from = EMAIL_FROM;
-                    $message_subj = SITE_NAME . " - Password reset request !";
-                    $message_cont = "Hello {$username}<br/><br/>";
-                    $message_cont .= "You recently requested a password reset on " . $auth_conf['site_name'] . "<br/>";
-                    $message_cont .= "To proceed with the password reset, please click the following link :<br/><br/>";
-                    $message_cont .= "<b><a href=\"" . BASE_URL . "?page=forgot&username={$username}&key={$resetkey}\">Reset My Password</a></b>";
-                    $message_head = "From: {$message_from}" . "\r\n";
-                    $message_head .= "MIME-Version: 1.0" . "\r\n";
-                    $message_head .= "Content-type: text/html; charset=iso-8859-1" . "\r\n";
-                    mail($email, $message_subj, $message_cont, $message_head);
+
+                    //EMAIL MESSAGE USING PHPMAILER
+                    $mail = new \Helpers\PhpMailer\Mail();
+                    $mail->setFrom(EMAIL_FROM);
+                    $mail->addAddress($email);
+                    $mail->subject(SITE_NAME . " - Password reset request !");
+                    $body = "Hello {$username}<br/><br/>";
+                    $body .= "You recently requested a password reset on " . SITE_NAME . "<br/>";
+                    $body .= "To proceed with the password reset, please click the following link :<br/><br/>";
+                    $body .= "<b><a href=\"" . BASE_URL . RESET_PASSWORD_FUNCTION . "?username={$username}&key={$resetkey}\">Reset My Password</a></b>";
+                    $mail->body($body);
+                    $mail->send();
                     $this->logActivity($username, "AUTH_RESETPASS_SUCCESS", "Reset pass request sent to {$email} ( Key : {$resetkey} )");
                     $this->successmsg[] = $this->lang['resetpass_email_sent'];
                     return true;
@@ -707,9 +720,9 @@ class Auth {
                 }
                 if (strlen($newpass) == 0) {
                     $this->errormsg[] = $this->lang['resetpass_newpass_empty'];
-                } elseif (strlen($newpass) > 30) {
+                } elseif (strlen($newpass) > MAX_PASSWORD_LENGTH) {
                     $this->errormsg[] = $this->lang['resetpass_newpass_long'];
-                } elseif (strlen($newpass) < 5) {
+                } elseif (strlen($newpass) < MIN_PASSWORD_LENGTH) {
                     $this->errormsg[] = $this->lang['resetpass_newpass_short'];
                 } elseif (strstr($newpass, $username)) {
                     $this->errormsg[] = $this->lang['resetpass_newpass_username'];
@@ -816,22 +829,22 @@ class Auth {
     function deleteAccount($username, $password) {
         if (strlen($username) == 0) {
             $this->errormsg[] = $this->lang['deleteaccount_username_empty'];
-        } elseif (strlen($username) > 30) {
+        } elseif (strlen($username) > MAX_USERNAME_LENGTH) {
             $this->errormsg[] = $this->lang['deleteaccount_username_long'];
-        } elseif (strlen($username) < 3) {
+        } elseif (strlen($username) < MIN_USERNAME_LENGTH) {
             $this->errormsg[] = $this->lang['deleteaccount_username_short'];
         }
         if (strlen($password) == 0) {
             $this->errormsg[] = $this->lang['deleteaccount_password_empty'];
-        } elseif (strlen($password) > 30) {
+        } elseif (strlen($password) > MAX_PASSWORD_LENGTH) {
             $this->errormsg[] = $this->lang['deleteaccount_password_long'];
-        } elseif (strlen($password) < 5) {
+        } elseif (strlen($password) < MIN_PASSWORD_LENGTH) {
             $this->errormsg[] = $this->lang['deleteaccount_password_short'];
         }
         if (count($this->errormsg) == 0) {
             $password = $this->hashPass($password);
             $query = $this->db->select("SELECT password FROM users WHERE username=:username", array(':username' => $username));
-            $count = count($query);           
+            $count = count($query);
             if ($count == 0) {
                 $this->logActivity("UNKNOWN", "AUTH_DELETEACCOUNT_FAIL", "Username Incorrect ({$username})");
                 $this->errormsg[] = $this->lang['deleteaccount_username_incorrect'];
