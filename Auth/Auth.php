@@ -351,7 +351,7 @@ class Auth {
                     } else {
                         //todo bien continua con registr
                         $password = $this->hashPass($password);
-                        $activekey = $this->randomKey(15); //genera una randomkey para activacion enviar por email
+                        $activekey = $this->randomKey(RANDOM_KEY_LENGTH); //genera una randomkey para activacion enviar por email
                         $this->db->insert('users', array('username' => $username, 'password' => $password, 'email' => $email, 'activekey' => $activekey));
                         //$last_insert_id = $this->db->lastInsertId('id');
                         $this->logActivity($username, "AUTH_REGISTER_SUCCESS", "Account created");
@@ -430,7 +430,7 @@ class Auth {
                     } else {
                         // Email address isn't already used
                         $password = $this->hashPass($password);
-                        $activekey = $this->randomKey(15);
+                        $activekey = $this->randomKey(RANDOM_KEY_LENGTH);
                         $this->db->insert('users', array('username' => $username, 'password' => $password, 'email' => $email, 'activekey' => $activekey));
                         //EMAIL MESSAGE USING PHPMAILER
                         $mail = new \Helpers\PhpMailer\Mail();
@@ -482,10 +482,10 @@ class Auth {
     public function logActivity($username, $action, $additionalinfo = "none") {
         if (strlen($username) == 0) {
             $username = "GUEST";
-        } elseif (strlen($username) < 3) {
+        } elseif (strlen($username) < MIN_USERNAME_LENGTH) {
             $this->errormsg[] = $this->lang['logactivity_username_short'];
             return false;
-        } elseif (strlen($username) > 30) {
+        } elseif (strlen($username) > MAX_USERNAME_LENGTH) {
             $this->errormsg[] = $this->lang['logactivity_username_long'];
             return false;
         }
@@ -691,7 +691,7 @@ class Auth {
                     $this->addAttempt($_SERVER['REMOTE_ADDR']);
                     return false;
                 } else {
-                    $resetkey = $this->randomKey(15);
+                    $resetkey = $this->randomKey(RANDOM_KEY_LENGTH);
                     $username = $query[0]->username;
                     $this->db->update('users', array('resetkey' => $resetkey), array('username' => $username));
 
@@ -715,9 +715,9 @@ class Auth {
                 // Reset Password
                 if (strlen($key) == 0) {
                     $this->errormsg[] = $this->lang['resetpass_key_empty'];
-                } elseif (strlen($key) < 15) {
+                } elseif (strlen($key) < RANDOM_KEY_LENGTH) {
                     $this->errormsg[] = $this->lang['resetpass_key_short'];
-                } elseif (strlen($key) > 15) {
+                } elseif (strlen($key) > RANDOM_KEY_LENGTH) {
                     $this->errormsg[] = $this->lang['resetpass_key_long'];
                 }
                 if (strlen($newpass) == 0) {
