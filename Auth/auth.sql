@@ -1,11 +1,4 @@
--- phpMyAdmin SQL Dump
--- version 3.3.7
--- http://www.phpmyadmin.net
---
--- Serveur: localhost
--- Généré le : Jeu 19 Janvier 2012 à 01:58
--- Version du serveur: 5.1.58
--- Version de PHP: 5.2.17
+-- version 1.6
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 
@@ -22,7 +15,7 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 -- --------------------------------------------------------
 
 --
--- Structure de la table `activitylog`
+-- `activitylog` table
 --
 
 CREATE TABLE IF NOT EXISTS `activitylog` (
@@ -38,7 +31,7 @@ CREATE TABLE IF NOT EXISTS `activitylog` (
 -- --------------------------------------------------------
 
 --
--- Structure de la table `attempts`
+-- `attempts` table
 --
 
 CREATE TABLE IF NOT EXISTS `attempts` (
@@ -50,7 +43,7 @@ CREATE TABLE IF NOT EXISTS `attempts` (
 -- --------------------------------------------------------
 
 --
--- Structure de la table `sessions`
+-- `sessions` table
 --
 
 CREATE TABLE IF NOT EXISTS `sessions` (
@@ -66,7 +59,7 @@ CREATE TABLE IF NOT EXISTS `sessions` (
 -- --------------------------------------------------------
 
 --
--- Structure de la table `users`
+--  `users` table
 --
 
 CREATE TABLE IF NOT EXISTS `users` (

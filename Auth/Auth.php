@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * Auth class for simple mvc framework
+ * @version 1.6
+ * @author Jhobanny Morillo <geomorillo@yahoo.com>
+ */
+
 namespace Helpers\Auth;
 
 use Helpers\Database;
@@ -679,7 +685,7 @@ class Auth {
                 } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                     $this->errormsg[] = $this->lang['resetpass_email_invalid'];
                 }
-                
+
                 $query = $this->db->select("SELECT username FROM users WHERE email=:email", array(':email' => $email));
                 $count = count($query);
                 if ($count == 0) {
@@ -754,8 +760,8 @@ class Auth {
                             return true;
                         } else {
                             $this->errormsg[] = $this->lang['resetpass_key_incorrect'];
-                        $attcount[0]->count = $attcount[0]->count + 1;
-                        $remaincount = (int) MAX_ATTEMPTS - $attcount[0]->count;
+                            $attcount[0]->count = $attcount[0]->count + 1;
+                            $remaincount = (int) MAX_ATTEMPTS - $attcount[0]->count;
                             $this->logActivity($username, "AUTH_RESETPASS_FAIL", "Key Incorrect ( DB : {$db_key} / Given : {$key} )");
                             $this->errormsg[] = sprintf($this->lang['resetpass_attempts_remaining'], $remaincount);
                             $this->addAttempt($_SERVER['REMOTE_ADDR']);
@@ -845,7 +851,7 @@ class Auth {
             $this->errormsg[] = $this->lang['deleteaccount_password_short'];
         }
         if (count($this->errormsg) == 0) {
-            
+
             $query = $this->db->select("SELECT password FROM users WHERE username=:username", array(':username' => $username));
             $count = count($query);
             if ($count == 0) {

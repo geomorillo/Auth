@@ -1,9 +1,12 @@
 <?php
 
-// ---------------------------
-// Auth Class Language File
-// Current Languages : en / fr
-// ---------------------------
+/** ---------------------------
+* Auth Class Language File
+* Current Languages : en / fr / de
+* ---------------------------
+* @version 1.6
+* @author Jhobanny Morillo <geomorillo@yahoo.com>
+*/
 
 // en (English) :
 

@@ -4,7 +4,7 @@ namespace Helpers;
 
 /**
  * Simple cookie class
- * @author Jhobanny Morillo geomorillo@yahoo.com
+ * @author Jhobanny Morillo <geomorillo@yahoo.com>
  * @date June 10, 2015
  */
 class Cookie {
