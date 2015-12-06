@@ -3,7 +3,7 @@
 
 This will help you to easily protect your site with an auth based system.
 
-** Installation **
+**Installation**
 
 * 1) Copy Auth folder to your Helpers folder
 * 2) Edit Setup.php important variables are SITE_NAME, EMAIL_FROM, BASE_URL, LOC
