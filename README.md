@@ -63,7 +63,7 @@ valid or not, using the login() method.
             //you can use a redirect or load a view or to index for example
             $this->index();
         } else {
-            echo "not autenticated some error ocurred";
+            echo "not authenticated some error ocurred";
             // not authenticated you can redirect to a login view
         }
     } 
