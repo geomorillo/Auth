@@ -5,12 +5,12 @@ This will help you to easily protect your site with an auth based system.
 
 **Installation**
 
-* 1) Copy Auth folder to your Helpers folder
-* 2) Edit Setup.php important variables are SITE_NAME, EMAIL_FROM, BASE_URL, LOC
-* 3) Special variables like ACTIVATION_ROUTE, RESET_PASSWORD_ROUTE, need each one a route
+*  Copy Auth folder to your Helpers folder
+*  Edit Setup.php important variables are SITE_NAME, EMAIL_FROM, BASE_URL, LOC
+*  Special variables like ACTIVATION_ROUTE, RESET_PASSWORD_ROUTE, need each one a route
 on Config.php, one for activating an account and one for reset the password, its value must 
 be the same as the route defined.
-* 4) Create a new database and import auth.sql using your prefered database client(phpmyadmin, heidysql) 
+*  Create a new database and import auth.sql using your prefered database client(phpmyadmin, heidysql) 
 and execute it, this will create the tables activitylog, attempts, sessions, users.
  -Note: the connections to db should be setup inside the framework
 
