@@ -161,7 +161,7 @@ public function activate(){
         }
     }
 ```
-- The resetPass method should send an email with a reset key password url given the email
+- The resetPass method should reset a password and send an email with a reset key url, given the email
 ```
     public function requestResetPass() {
         $email = "geomorillo@yahoo.com";
