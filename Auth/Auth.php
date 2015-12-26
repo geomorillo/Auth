@@ -2,14 +2,14 @@
 
 /**
  * Auth class for simple mvc framework
- * @version 1.6
+ * @version 1.7
  * @author Jhobanny Morillo <geomorillo@yahoo.com>
  */
 
 namespace Helpers\Auth;
 
 use Helpers\Database;
-use Helpers\Cookie;
+use Helpers\Auth\Cookie;
 
 class Auth {
 

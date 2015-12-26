@@ -1,6 +1,6 @@
 <?php
 
-namespace Helpers;
+namespace Helpers\Auth;
 
 /**
  * Simple cookie class
