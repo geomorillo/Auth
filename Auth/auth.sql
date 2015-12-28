@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS `activitylog` (
   `username` varchar(30) NOT NULL,
   `action` varchar(100) NOT NULL,
   `additionalinfo` varchar(500) NOT NULL DEFAULT 'none',
-  `ip` varchar(15) NOT NULL,
+  `ip` varchar(39) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=11 ;
 
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS `activitylog` (
 --
 
 CREATE TABLE IF NOT EXISTS `attempts` (
-  `ip` varchar(15) NOT NULL,
+  `ip` varchar(39) NOT NULL,
   `count` int(11) NOT NULL,
   `expiredate` datetime NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS `sessions` (
   `username` varchar(30) NOT NULL,
   `hash` varchar(32) NOT NULL,
   `expiredate` datetime NOT NULL,
-  `ip` varchar(15) NOT NULL,
+  `ip` varchar(39) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=5 ;
 
