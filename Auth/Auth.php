@@ -61,7 +61,7 @@ class Auth {
                     return false;
                 } else {
                     // Input is valid
-                    $query = $this->db->select("SELECT isactive,password FROM {PREFIX}users WHERE username=:username", array(":username" => $username));
+                    $query = $this->db->select("SELECT isactive,password FROM ".PREFIX."users WHERE username=:username", array(":username" => $username));
                     $count = count($query);
                     $hashed_db_password = $query[0]->password;
                     $verify_password = \Helpers\Password::verify($password, $hashed_db_password);
@@ -115,7 +115,7 @@ class Auth {
     public function isLogged() {
         $auth_session = Cookie::get("auth_session"); //get hash from browser
         //check if session is valid
-        return ($auth_session != '' && $this->sessionIsValid($auth_session)) ? true : false;
+        return ($auth_session != '' && $this->sessionIsValid($auth_session));
     }
 
     /**
@@ -135,7 +135,7 @@ class Auth {
      * @return array $session
      */
     private function sessionInfo($hash) {
-        $query = $this->db->select("SELECT uid, username, expiredate, ip FROM {PREFIX}sessions WHERE hash=:hash", array(':hash' => $hash));
+        $query = $this->db->select("SELECT uid, username, expiredate, ip FROM ".PREFIX."sessions WHERE hash=:hash", array(':hash' => $hash));
         $count = count($query);
         if ($count == 0) {
             // Hash doesn't exist
@@ -161,7 +161,7 @@ class Auth {
      */
     private function sessionIsValid($hash) {
         //if hash in db
-        $sql = "SELECT username, expiredate, ip FROM {PREFIX}sessions WHERE hash=:hash";
+        $sql = "SELECT username, expiredate, ip FROM ".PREFIX."sessions WHERE hash=:hash";
         $session = $this->db->select($sql, array(":hash" => $hash));
         $count = count($session);
         if ($count == 0) {
@@ -177,7 +177,7 @@ class Auth {
             $db_ip = $session[0]->ip;
             if ($_SERVER['REMOTE_ADDR'] != $db_ip) {
                 //hash exists but ip is changed, delete session and hash
-                $this->db->delete("{PREFIX}sessions", array('username' => $username));
+                $this->db->delete(PREFIX."sessions", array('username' => $username));
                 Cookie::destroy("auth_session", $hash);
                 //setcookie("auth_session", $hash, time() - 3600, "/");
                 $this->logActivity($username, "AUTH_CHECKSESSION", "User session cookie deleted - IP Different ( DB : {$db_ip} / Current : " . $_SERVER['REMOTE_ADDR'] . " )");
@@ -187,7 +187,7 @@ class Auth {
                 $currentdate = strtotime(date("Y-m-d H:i:s"));
                 if ($currentdate > $expiredate) {
                     //session has expired delete session and cookies
-                    $this->db->delete("{PREFIX}sessions", array("username" => $username));
+                    $this->db->delete(PREFIX."sessions", array("username" => $username));
                     Cookie::destroy("auth_session", $hash);
                     //setcookie("auth_session", $hash, time() - 3600, "/");
                     $this->logActivity($username, "AUTH_CHECKSESSION", "User session cookie deleted - Session expired ( Expire date : {$db_expiredate} )");
@@ -205,7 +205,7 @@ class Auth {
      * @return int $attempt_count
      */
     private function getAttempt($ip) {
-        $attempt_count = $this->db->select("SELECT count FROM {PREFIX}attempts WHERE ip=:ip", array(":ip" => $ip));
+        $attempt_count = $this->db->select("SELECT count FROM ".PREFIX."attempts WHERE ip=:ip", array(":ip" => $ip));
         $count = count($attempt_count);
 
         if ($count == 0) {
@@ -221,17 +221,17 @@ class Auth {
      */
 
     private function addAttempt($ip) {
-        $query_attempt = $this->db->select("SELECT count FROM {PREFIX}attempts WHERE ip=:ip", array(":ip" => $ip));
+        $query_attempt = $this->db->select("SELECT count FROM ".PREFIX."attempts WHERE ip=:ip", array(":ip" => $ip));
         $count = count($query_attempt);
         $attempt_expiredate = date("Y-m-d H:i:s", strtotime(SECURITY_DURATION));
         if ($count == 0) {
             // No record of this IP in attempts table already exists, create new
             $attempt_count = 1;
-            $this->db->insert("{PREFIX}attempts", array("ip" => $ip, "count" => $attempt_count, "expiredate" => $attempt_expiredate));
+            $this->db->insert(PREFIX."attempts", array("ip" => $ip, "count" => $attempt_count, "expiredate" => $attempt_expiredate));
         } else {
             // IP Already exists in attempts table, add 1 to current count
             $attempt_count = intval($query_attempt[0]->count) + 1;
-            $this->db->update("{PREFIX}attempts", array("count" => $attempt_count, "expiredate" => $attempt_expiredate), array("ip" => $ip));
+            $this->db->update(PREFIX."attempts", array("count" => $attempt_count, "expiredate" => $attempt_expiredate), array("ip" => $ip));
         }
     }
 
@@ -240,7 +240,7 @@ class Auth {
      * (Currently used on __construct but need more testing)
      */
     private function expireAttempt() {
-        $query_attempts = $this->db->select("SELECT ip, expiredate FROM {PREFIX}attempts");
+        $query_attempts = $this->db->select("SELECT ip, expiredate FROM ".PREFIX."attempts");
         $count = count($query_attempts);
         $curr_time = strtotime(date("Y-m-d H:i:s"));
         if ($count != 0) {
@@ -248,7 +248,7 @@ class Auth {
                 $attempt_expiredate = strtotime($attempt->expiredate);
                 if ($attempt_expiredate <= $curr_time) {
                     $where = array("ip" => $attempt->ip);
-                    $this->db->delete("{PREFIX}attempts", $where);
+                    $this->db->delete("".PREFIX."attempts", $where);
                 }
             }
         }
@@ -261,14 +261,14 @@ class Auth {
     private function newSession($username) {
         $hash = md5(microtime()); // unique session hash
         // Fetch User ID :		
-        $queryUid = $this->db->select("SELECT id FROM {PREFIX}users WHERE username=:username", array(":username" => $username));
+        $queryUid = $this->db->select("SELECT id FROM ".PREFIX."users WHERE username=:username", array(":username" => $username));
         $uid = $queryUid[0]->id;
         // Delete all previous sessions :
-        $this->db->delete("{PREFIX}sessions", array("username" => $username));
+        $this->db->delete(PREFIX."sessions", array("username" => $username));
         $ip = $_SERVER['REMOTE_ADDR'];
         $expiredate = date("Y-m-d H:i:s", strtotime(SESSION_DURATION));
         $expiretime = strtotime($expiredate);
-        $this->db->insert("{PREFIX}sessions", array("uid" => $uid, "username" => $username, "hash" => $hash, "expiredate" => $expiredate, "ip" => $ip));
+        $this->db->insert(PREFIX."sessions", array("uid" => $uid, "username" => $username, "hash" => $hash, "expiredate" => $expiredate, "ip" => $ip));
         Cookie::set('auth_session', $hash, $expiretime, "/", FALSE);
     }
 
@@ -278,7 +278,7 @@ class Auth {
      */
     private function deleteSession($hash) {
 
-        $query_username = $this->db->select("SELECT username FROM {PREFIX}sessions WHERE hash=:hash", array(":hash" => $hash));
+        $query_username = $this->db->select("SELECT username FROM ".PREFIX."sessions WHERE hash=:hash", array(":hash" => $hash));
         $count = count($query_username);
         if ($count == 0) {
             // Hash doesn't exist
@@ -287,7 +287,7 @@ class Auth {
         } else {
             $username = $query_username[0]->username;
             // Hash exists, Delete all sessions for that username :
-            $this->db->delete("{PREFIX}sessions", array("username" => $username));
+            $this->db->delete(PREFIX."sessions", array("username" => $username));
             $this->logActivity($username, "AUTH_LOGOUT", "User session cookie deleted - Database session deleted - Hash ({$hash})");
             //setcookie("auth_session", $hash, time() - 3600, "/");
             Cookie::destroy("auth_session", $hash);
@@ -334,7 +334,7 @@ class Auth {
             }
             if (count($this->errormsg) == 0) {
                 // Input is valid 
-                $query = $this->db->select("SELECT * FROM {PREFIX}users WHERE username=:username", array(":username" => $username));
+                $query = $this->db->select("SELECT * FROM ".PREFIX."users WHERE username=:username", array(":username" => $username));
                 $count = count($query);
                 if ($count != 0) {
                     //ya existe el usuario
@@ -343,7 +343,7 @@ class Auth {
                     return false;
                 } else {
                     //usuario esta libre
-                    $query = $this->db->select("SELECT * FROM {PREFIX}users WHERE email=:email", array(":email" => $email));
+                    $query = $this->db->select("SELECT * FROM ".PREFIX."users WHERE email=:email", array(":email" => $email));
                     $count = count($query);
                     if ($count != 0) {
                         //ya existe el email
@@ -354,7 +354,7 @@ class Auth {
                         //todo bien continua con registr
                         $password = $this->hashPass($password);
                         $activekey = $this->randomKey(RANDOM_KEY_LENGTH); //genera una randomkey para activacion enviar por email
-                        $this->db->insert("{PREFIX}users", array("username" => $username, "password" => $password, "email" => $email, "activekey" => $activekey));
+                        $this->db->insert(PREFIX."users", array("username" => $username, "password" => $password, "email" => $email, "activekey" => $activekey));
                         //$last_insert_id = $this->db->lastInsertId('id');
                         $this->logActivity($username, "AUTH_REGISTER_SUCCESS", "Account created");
                         $this->successmsg[] = $this->lang['register_success'];
@@ -413,7 +413,7 @@ class Auth {
             }
             if (count($this->errormsg) == 0) {
                 // Input is valid
-                $query = $this->db->select("SELECT * FROM {PREFIX}users WHERE username=:username", array(":username" => $username));
+                $query = $this->db->select("SELECT * FROM ".PREFIX."users WHERE username=:username", array(":username" => $username));
                 $count = count($query);
                 if ($count != 0) {
                     // Username already exists
@@ -422,7 +422,7 @@ class Auth {
                     return false;
                 } else {
                     // Username is not taken 
-                    $query = $this->db->select("SELECT * FROM {PREFIX}users WHERE email=:email", array(":email" => $email));
+                    $query = $this->db->select("SELECT * FROM ".PREFIX."users WHERE email=:email", array(":email" => $email));
                     $count = count($query);
                     if ($count != 0) {
                         // Email address is already used
@@ -433,16 +433,16 @@ class Auth {
                         // Email address isn't already used
                         $password = $this->hashPass($password);
                         $activekey = $this->randomKey(RANDOM_KEY_LENGTH);
-                        $this->db->insert("{PREFIX}users", array("username" => $username, "password" => $password, "email" => $email, "activekey" => $activekey));
+                        $this->db->insert(PREFIX."users", array("username" => $username, "password" => $password, "email" => $email, "activekey" => $activekey));
                         //EMAIL MESSAGE USING PHPMAILER
                         $mail = new \Helpers\PhpMailer\Mail();
                         $mail->setFrom(EMAIL_FROM);
                         $mail->addAddress($email);
                         $mail->subject(SITE_NAME);
                         $body = "Hello {$username}<br/><br/>";
-                        $body .= "You recently registered a new account on {SITE_NAME}<br/>";
+                        $body .= "You recently registered a new account on ".SITE_NAME."<br/>";
                         $body .= "To activate your account please click the following link<br/><br/>";
-                        $body .= "<b><a href='{BASE_URL}{ACTIVATION_ROUTE}?username={$username}&key={$activekey}'>Activate my account</a></b>";
+                        $body .= "<b><a href='".BASE_URL.ACTIVATION_ROUTE."?username={$username}&key={$activekey}'>Activate my account</a></b>";
                         $mail->body($body);
                         $mail->send();
                         $this->logActivity($username, "AUTH_REGISTER_SUCCESS", "Account created and activation email sent");
@@ -469,7 +469,7 @@ class Auth {
     public function activateAccount($username, $key) {
         // check lengst of keys and username strings since this can be directly called
         //  if current account is active dont activate 
-        $this->db->update("{PREFIX}users", array("isactive" => 1, "activekey" => $key), array("username" => $username));
+        $this->db->update(PREFIX."users", array("isactive" => 1, "activekey" => $key), array("username" => $username));
         $this->logActivity($username, "AUTH_ACTIVATE_SUCCESS", "Activation successful. Key Entry deleted.");
         $this->successmsg[] = $this->lang['activate_success'];
     }
@@ -510,7 +510,7 @@ class Auth {
         if (count($this->errormsg) == 0) {
             $ip = $_SERVER['REMOTE_ADDR'];
             $date = date("Y-m-d H:i:s");
-            $this->db->insert("{PREFIX}activitylog", array("date" => $date, "username" => $username, "action" => $action, "additionalinfo" => $additionalinfo, "ip" => $ip));
+            $this->db->insert(PREFIX."activitylog", array("date" => $date, "username" => $username, "action" => $action, "additionalinfo" => $additionalinfo, "ip" => $ip));
             return true;
         }
     }
@@ -580,7 +580,7 @@ class Auth {
         if (count($this->errormsg) == 0) {
             //$currpass = $this->hashPass($currpass);
             $newpass = $this->hashPass($newpass);
-            $query = $this->db->select("SELECT password FROM {PREFIX}users WHERE username=:username", array(":username" => $username));
+            $query = $this->db->select("SELECT password FROM ".PREFIX."users WHERE username=:username", array(":username" => $username));
             $count = count($query);
             if ($count == 0) {
                 $this->logActivity("UNKNOWN", "AUTH_CHANGEPASS_FAIL", "Username Incorrect ({$username})");
@@ -590,7 +590,7 @@ class Auth {
                 $db_currpass = $query[0]->password;
                 $verify_password = \Helpers\Password::verify($currpass, $db_currpass);
                 if ($verify_password) {
-                    $this->db->update("{PREFIX}users", array("password" => $newpass), array("username" => $username));
+                    $this->db->update(PREFIX."users", array("password" => $newpass), array("username" => $username));
                     $this->logActivity($username, "AUTH_CHANGEPASS_SUCCESS", "Password changed");
                     $this->successmsg[] = $this->lang['changepass_success'];
                     return true;
@@ -629,7 +629,7 @@ class Auth {
             $this->errormsg[] = $this->lang['changeemail_email_invalid'];
         }
         if (count($this->errormsg) == 0) {
-            $query = $this->db->select("SELECT email FROM {PREFIX}users WHERE username=:username", array(":username" => $username));
+            $query = $this->db->select("SELECT email FROM ".PREFIX."users WHERE username=:username", array(":username" => $username));
             $count = count($query);
             if ($count == 0) {
                 $this->logActivity("UNKNOWN", "AUTH_CHANGEEMAIL_FAIL", "Username Incorrect ({$username})");
@@ -642,7 +642,7 @@ class Auth {
                     $this->errormsg[] = $this->lang['changeemail_email_match'];
                     return false;
                 } else {
-                    $this->db->update("{PREFIX}users", array("email" => $email), array("username" => $username));
+                    $this->db->update(PREFIX."users", array("email" => $email), array("username" => $username));
                     $this->logActivity($username, "AUTH_CHANGEEMAIL_SUCCESS", "Email changed from {$db_email} to {$email}");
                     $this->successmsg[] = $this->lang['changeemail_success'];
                     return true;
@@ -681,7 +681,7 @@ class Auth {
                     $this->errormsg[] = $this->lang['resetpass_email_invalid'];
                 }
 
-                $query = $this->db->select("SELECT username FROM {PREFIX}users WHERE email=:email", array(":email" => $email));
+                $query = $this->db->select("SELECT username FROM ".PREFIX."users WHERE email=:email", array(":email" => $email));
                 $count = count($query);
                 if ($count == 0) {
                     $this->errormsg[] = $this->lang['resetpass_email_incorrect'];
@@ -694,7 +694,7 @@ class Auth {
                 } else {
                     $resetkey = $this->randomKey(RANDOM_KEY_LENGTH);
                     $username = $query[0]->username;
-                    $this->db->update("{PREFIX}users", array("resetkey" => $resetkey), array("username" => $username));
+                    $this->db->update(PREFIX."users", array("resetkey" => $resetkey), array("username" => $username));
 
                     //EMAIL MESSAGE USING PHPMAILER
                     $mail = new \Helpers\PhpMailer\Mail();
@@ -733,7 +733,7 @@ class Auth {
                     $this->errormsg[] = $this->lang['resetpass_newpass_nomatch'];
                 }
                 if (count($this->errormsg) == 0) {
-                    $query = $this->db->select("SELECT resetkey FROM {PREFIX}users WHERE username=:username", array(":username" => $username));
+                    $query = $this->db->select("SELECT resetkey FROM ".PREFIX."users WHERE username=:username", array(":username" => $username));
                     $count = count($query);
                     if ($count == 0) {
                         $this->errormsg[] = $this->lang['resetpass_username_incorrect'];
@@ -749,7 +749,7 @@ class Auth {
                             //if reset key ok update pass
                             $newpass = $this->hashpass($newpass);
                             $resetkey = '0';
-                            $this->db->update("{PREFIX}users", array("password" => $newpass, "resetkey" => $resetkey), array("username" => $username));
+                            $this->db->update(PREFIX."users", array("password" => $newpass, "resetkey" => $resetkey), array("username" => $username));
                             $this->logActivity($username, "AUTH_RESETPASS_SUCCESS", "Password reset - Key reset");
                             $this->successmsg[] = $this->lang['resetpass_success'];
                             return true;
@@ -796,7 +796,7 @@ class Auth {
             } elseif (strlen($key) > RANDOM_KEY_LENGTH) {
                 return false;
             } else {
-                $query = $this->db->select("SELECT resetkey FROM {PREFIX}users WHERE username=:username", array(":username" => $username));
+                $query = $this->db->select("SELECT resetkey FROM ".PREFIX."users WHERE username=:username", array(":username" => $username));
                 $count = count($query);
                 if ($count == 0) {
                     $this->logActivity("UNKNOWN", "AUTH_CHECKRESETKEY_FAIL", "Username doesn't exist ({$username})");
@@ -847,7 +847,7 @@ class Auth {
         }
         if (count($this->errormsg) == 0) {
 
-            $query = $this->db->select("SELECT password FROM {PREFIX}users WHERE username=:username", array(":username" => $username));
+            $query = $this->db->select("SELECT password FROM ".PREFIX."users WHERE username=:username", array(":username" => $username));
             $count = count($query);
             if ($count == 0) {
                 $this->logActivity("UNKNOWN", "AUTH_DELETEACCOUNT_FAIL", "Username Incorrect ({$username})");
@@ -857,8 +857,8 @@ class Auth {
                 $db_password = $query[0]->password;
                 $verify_password = \Helpers\Password::verify($password, $db_password);
                 if ($verify_password) {
-                    $this->db->delete("{PREFIX}users", array("username" => $username));
-                    $this->db->delete("{PREFIX}sessions", array("username" => $username));
+                    $this->db->delete(PREFIX."users", array("username" => $username));
+                    $this->db->delete(PREFIX."sessions", array("username" => $username));
                     $this->logActivity($username, "AUTH_DELETEACCOUNT_SUCCESS", "Account deleted - Sessions deleted");
                     $this->successmsg[] = $this->lang['deleteaccount_success'];
                     return true;
