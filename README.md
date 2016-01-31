@@ -14,6 +14,26 @@ be the same as the route defined.
 and execute it, this will create the tables activitylog, attempts, sessions, users.
  -Note: the connections to db should be setup inside the framework
 
+**EXTRA NOTE: If you plan to set ```PREFIX``` in the Config.php** Do either 1 of the 2 below
+* Example: if your ```PREFIX``` in the Config.php is ```hi_```
+* In SQL edit 
+```
+CREATE TABLE IF NOT EXISTS `activitylog` (
+CREATE TABLE IF NOT EXISTS `attempts` (
+CREATE TABLE IF NOT EXISTS `sessions` (
+CREATE TABLE IF NOT EXISTS `users` (
+```
+* to 
+```
+CREATE TABLE IF NOT EXISTS `hi_activitylog` (
+CREATE TABLE IF NOT EXISTS `hi_attempts` (
+CREATE TABLE IF NOT EXISTS `hi_sessions` (
+CREATE TABLE IF NOT EXISTS `hi_users` (
+```
+
+* OR if you already imported the sql into the database, you can just rename the 4 tables with the PREFIX you chose.
+
+
 **Usage**
 
 - Create a private variable on your controller  and initialize it on __construct
