@@ -55,6 +55,7 @@ $lang['en']['activate_username_incorrect'] = "Username is incorrect !";
 $lang['en']['activate_account_activated'] = "Account is already activated !";
 $lang['en']['activate_success'] = "Account successfully activated !";
 $lang['en']['activate_key_incorrect'] = "Activation key is incorrect !";
+$lang['en']['activate_error'] = "Unable to active account !";
 
 $lang['en']['changepass_username_empty'] = "Error encountered !";
 $lang['en']['changepass_username_short'] = "Error encountered !";
@@ -173,6 +174,7 @@ $lang['fr']['activate_username_incorrect'] = "Nom d'utilisateur incorrecte !";
 $lang['fr']['activate_account_activated'] = "Compte deja activé !";
 $lang['fr']['activate_success'] = "Compte activé !";
 $lang['fr']['activate_key_incorrect'] = "Clé d'activation incorrecte !";
+$lang['fr']['activate_error'] = "Unable to active account !";
 
 $lang['fr']['changepass_username_empty'] = "Erreur rencontrée !";
 $lang['fr']['changepass_username_short'] = "Erreur rencontrée !";
@@ -291,6 +293,7 @@ $lang['es']['activate_username_incorrect'] = "Nombre de usuario es incorrecto !"
 $lang['es']['activate_account_activated'] = "La cuenta ya estaba activada !";
 $lang['es']['activate_success'] = "La cuenta fue activada exitosamente !";
 $lang['es']['activate_key_incorrect'] = "La clave de activación es incorrrecta !";
+$lang['es']['activate_error'] = "Unable to active account !";
 
 $lang['es']['changepass_username_empty'] = "¡Se encontró un error !";
 $lang['es']['changepass_username_short'] = "¡Se encontró un error !";
@@ -404,6 +407,7 @@ $lang['de']['activate_username_incorrect'] = "Ihr Benutzername ist falsch.";
 $lang['de']['activate_account_activated'] = "Ihr Konto ist bereits aktiviert.";
 $lang['de']['activate_success'] = "Ihr Konto wurde erfolgreich aktiviert.";
 $lang['de']['activate_key_incorrect'] = "Der Aktivierungscode ist falsch.";
+$lang['de']['activate_error'] = "Unable to active account !";
 $lang['de']['changepass_username_empty'] = "Es ist ein Fehler aufgetreten.";
 $lang['de']['changepass_username_short'] = "Es ist ein Fehler aufgetreten.";
 $lang['de']['changepass_username_long'] = "Es ist ein Fehler aufgetreten.";

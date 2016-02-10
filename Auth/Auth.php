@@ -467,11 +467,61 @@ class Auth {
      * @param string $key
      */
     public function activateAccount($username, $key) {
-        // check lengst of keys and username strings since this can be directly called
-        //  if current account is active dont activate 
-        $this->db->update(PREFIX."users", array("isactive" => 1, "activekey" => $key), array("username" => $username));
-        $this->logActivity($username, "AUTH_ACTIVATE_SUCCESS", "Activation successful. Key Entry deleted.");
-        $this->successmsg[] = $this->lang['activate_success'];
+        //get if username is active and its activekey
+        $query_active = $this->db->select("SELECT isactive,activekey FROM ".PREFIX."users WHERE username=:username", array(":username" => $username));
+
+        //username exists
+        if(sizeof($query_active)>0){
+            $db_isactive = $query_active[0]->isactive;
+            $db_key = $query_active[0]->activekey;
+            
+            //username is already activated
+            if($db_isactive){
+                //key is same as key in database
+                if($db_key == $key){
+                    $this->logActivity($username, "AUTH_ACTIVATE_ERROR", "Activation failed. Account already activated.");
+                    $this->errormsg[] = $this->lang['activate_account_activated'];
+                    return false;
+                }
+                //key is not same as in database
+                else{
+                    $this->logActivity($username, "AUTH_ACTIVATE_ERROR", "Activation failed. Incorrect key.");
+                    $this->errormsg[] = $this->lang['activate_key_incorrect'];
+                    return false;
+                }
+            }
+            else{
+                //key is same as in database
+                if($db_key == $key){
+                    $activated = $this->db->update(PREFIX."users", array("isactive" => 1, "activekey" => ""), array("username" => $username));
+                    //accounct activated only if the db class returns number of rows affected
+                    if ($activated > 0) {
+                        $this->logActivity($username, "AUTH_ACTIVATE_SUCCESS", "Activation successful. Key Entry deleted.");
+                        $this->successmsg[] = $this->lang['activate_success'];
+                        return true;
+                    }
+                    //somehow the activation failed... After all the checks from above, it SHOULD NEVER reach this point
+                    else{
+                        $this->logActivity($username, "AUTH_ACTIVATE_ERROR", "Activation failed.");
+                        $this->errormsg[] = $this->lang['activate_key_incorrect'];
+                        return false;
+                    }
+                }
+                //key is not same as in database
+                else{
+                    $this->logActivity($username, "AUTH_ACTIVATE_ERROR", "Activation failed. Incorrect key.");
+                    $this->errormsg[] = $this->lang['activate_key_incorrect'];
+                    return false;
+                }
+            }
+        }
+        //username doesn't exist
+        else{
+            $this->logActivity($username, "AUTH_ACTIVATE_ERROR", "Activation failed. Invalid username.");
+            $this->errormsg[] = $this->lang['activate_username_incorrect'];
+            return false;
+        }
+        
     }
 
     /**
