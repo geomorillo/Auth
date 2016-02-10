@@ -12,7 +12,8 @@ on Config.php, one for activating an account and one for reset the password, its
 be the same as the route defined.
 *  Create a new database and import auth.sql using your prefered database client(phpmyadmin, heidysql) 
 and execute it, this will create the tables activitylog, attempts, sessions, users.
- -Note: the connections to db should be setup inside the framework
+
+**Note:  The connections to db should be setup inside the framework**
 
 **EXTRA NOTE: If you plan to set ```PREFIX``` in the Config.php** Do either 1 of the 2 below
 * Example: if your ```PREFIX``` in the Config.php is ```hi_```
