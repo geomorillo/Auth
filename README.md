@@ -227,3 +227,7 @@ public function activate(){
         }
     }
 ```
+#Using Auth with ajax
+I have included a simple login demo using ajax inside de Example folder.
+Here you can see how to pass messages to the client, using public variables
+$errormsg and $successmsg
