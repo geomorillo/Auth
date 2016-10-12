@@ -1,4 +1,7 @@
-# Auth
+# Auth 
+
+(No longer supported for nova and simplemvc please see the new version for prestomvc https://github.com/geomorillo/prestomvc)
+
 **Auth addon for Simple MVC Framework**
 
 This will help you to easily protect your site with an auth based system.
